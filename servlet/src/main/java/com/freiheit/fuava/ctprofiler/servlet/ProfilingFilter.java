@@ -155,11 +155,12 @@ public class ProfilingFilter implements Filter {
                         renderer.setLeafStatisticsThresholdNanos(leafStatisticsThresholdNanos);
                         renderer.setLeafStatisticsMaxItems(leafStatisticsMaxItems);
                         StatisticsRenderer.render(renderer, statistics, ordering.getComparator());
-
+                        LOG.info(buffer.toString());
                     } else {
-                        buffer.append("too fast for CallTreeProfiler logging: " + totalNanos + "nanos "  + requestId);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("too fast for CallTreeProfiler logging: " + totalNanos + "nanos " + requestId);
+                        }
                     }
-                    LOG.info(buffer.toString());
                 } catch (final IOException io) {
                     // ignore - cannot help, if this happens
                 }
