@@ -10,7 +10,7 @@ subprojects {
   apply plugin: 'maven'
   apply plugin: 'maven-publish'
 
-  version = '1.0.3-jl'
+  version = '1.0.4-jl'
 
   repositories {
     mavenLocal()
@@ -51,7 +51,7 @@ subprojects {
     }
 
     dependencies {
-      compile 'org.slf4j:slf4j-api:1.7.12'
+      compile 'org.slf4j:slf4j-api:1.7.25'
       testCompile 'org.testng:testng:6.9.4'
     }
 

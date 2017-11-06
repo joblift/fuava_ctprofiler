@@ -7,7 +7,7 @@ jar {
 }
 
 dependencies {
-    compile 'org.mortbay.jetty:servlet-api:2.5.20110712'
+    compile 'javax.servlet:javax.servlet-api:3.1.0'
     compile project(":core")    
 }
 
