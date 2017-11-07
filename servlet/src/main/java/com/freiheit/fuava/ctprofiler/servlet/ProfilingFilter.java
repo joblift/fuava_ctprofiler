@@ -45,6 +45,7 @@ import com.freiheit.fuava.ctprofiler.core.rendering.TxtRenderer;
  * A Java Servlet Filter that adds profiling.
  */
 public class ProfilingFilter implements Filter {
+
     public static final String PARAM_LAYER = "layer";
     public static final String PARAM_LEAF_STATISTICS_THRESHOLD_NANOS = "leafStatisticsThresholdNanos";
     public static final String PARAM_LEAF_STATISTICS_MAX_ITEMS = "leafStatisticsMaxItems";
@@ -54,9 +55,10 @@ public class ProfilingFilter implements Filter {
     public static final String PARAM_CALL_INDENTATION = "callIndentation";
     public static final String PARAM_LEAF_NAME_PREFIX = "leafNamePrefix";
 
-
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(ProfilingFilter.class);
 
+
+    private boolean enabled = false;
     private CallTreeProfiler callTreeProfiler = ProfilerFactory.getGlobalProfiler();
     private long callDurationThresholdNanos = TimeUnit.MILLISECONDS.toNanos(1);
     private long leafStatisticsThresholdNanos = TimeUnit.MILLISECONDS.toNanos(10);
@@ -134,40 +136,44 @@ public class ProfilingFilter implements Filter {
     }
 
     @Override
-    public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain arg2) throws IOException, ServletException {
-        final String requestId = buildProfilingRequestId(request);
-        callTreeProfiler.clear();
-        callTreeProfiler.begin(layer, requestId, System.nanoTime());
-        try {
-            arg2.doFilter(request, response);
-        } finally {
-            callTreeProfiler.end(layer, requestId, System.nanoTime());
-            if (callTreeProfiler.isEnabled()) {
-                try {
-                    final StringBuilder buffer = new StringBuilder("\n");
-                    final Statistics statistics = callTreeProfiler.getStatistics();
-                    final long totalNanos = statistics.getTotalNanos();
-                    if (totalNanos > requestDurationThresholdNanos) {
-                        final TxtRenderer renderer = new TxtRenderer("", buffer);
-                        renderer.setLeafNamePrefix(leafNamePrefix);
-                        renderer.setCallIndentation(callIndentation);
-                        renderer.setTotalNanosThreshold(callDurationThresholdNanos);
-                        renderer.setLeafStatisticsThresholdNanos(leafStatisticsThresholdNanos);
-                        renderer.setLeafStatisticsMaxItems(leafStatisticsMaxItems);
-                        StatisticsRenderer.render(renderer, statistics, ordering.getComparator());
-                        LOG.info(buffer.toString());
-                    } else {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("too fast for CallTreeProfiler logging: " + totalNanos + "nanos " + requestId);
-                        }
-                    }
-                } catch (final IOException io) {
-                    // ignore - cannot help, if this happens
-                }
-            }
-            callTreeProfiler.clear();
-
-        }
+    public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain filterChain) throws IOException, ServletException {
+    	if (enabled) {
+		    final String requestId = buildProfilingRequestId(request);
+		    callTreeProfiler.clear();
+		    callTreeProfiler.begin(layer, requestId, System.nanoTime());
+		    try {
+			    filterChain.doFilter(request, response);
+		    } finally {
+			    callTreeProfiler.end(layer, requestId, System.nanoTime());
+			    if (callTreeProfiler.isEnabled()) {
+				    try {
+					    final StringBuilder buffer = new StringBuilder("\n");
+					    final Statistics statistics = callTreeProfiler.getStatistics();
+					    final long totalNanos = statistics.getTotalNanos();
+					    if (totalNanos > requestDurationThresholdNanos) {
+						    final TxtRenderer renderer = new TxtRenderer("", buffer);
+						    renderer.setLeafNamePrefix(leafNamePrefix);
+						    renderer.setCallIndentation(callIndentation);
+						    renderer.setTotalNanosThreshold(callDurationThresholdNanos);
+						    renderer.setLeafStatisticsThresholdNanos(leafStatisticsThresholdNanos);
+						    renderer.setLeafStatisticsMaxItems(leafStatisticsMaxItems);
+						    StatisticsRenderer.render(renderer, statistics, ordering.getComparator());
+						    LOG.info(buffer.toString());
+					    } else {
+						    if (LOG.isDebugEnabled()) {
+							    LOG.debug("too fast for CallTreeProfiler logging: " + totalNanos + "nanos " + requestId);
+						    }
+					    }
+				    } catch (final IOException io) {
+					    // ignore - cannot help, if this happens
+				    }
+			    }
+			    callTreeProfiler.clear();
+		    }
+	    }
+	    else {
+		    filterChain.doFilter(request, response);
+	    }
     }
 
 
@@ -215,6 +221,7 @@ public class ProfilingFilter implements Filter {
 
     @Override
     public void init(final FilterConfig config) throws ServletException {
+	    enabled = "true".equals(System.getEnv("PROFILING_FILTER_ENABLED"));
         leafStatisticsMaxItems = (int)parseOrDefault(config.getInitParameter(PARAM_LEAF_STATISTICS_MAX_ITEMS), leafStatisticsMaxItems);
         requestDurationThresholdNanos = parseOrDefault(config.getInitParameter(PARAM_REQUEST_DURATION_THRESHOLD_NANOS), requestDurationThresholdNanos);
         callDurationThresholdNanos = parseOrDefault(config.getInitParameter(PARAM_CALL_DURATION_THRESHOLD_NANOS), callDurationThresholdNanos);
