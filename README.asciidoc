@@ -345,3 +345,10 @@ mavenUser=username
 mavenPassword=basic-auth-password
 mavenRepo=repository-url
 ```
+
+
+Then call:
+
+```
+gradle clean build publish
+```
