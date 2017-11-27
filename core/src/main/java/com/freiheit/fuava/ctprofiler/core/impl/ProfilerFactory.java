@@ -35,6 +35,7 @@ public final class ProfilerFactory {
      * </pre>
      */
     public static final String PROP_GLOBAL_IS_ENABLED = "fdc.fuava.ctprofiler.enabled";
+    public static final String ENV_GLOBAL_IS_ENABLED = "FUAVA_CTPROFILER_ENABLED";
 
     private static final CallTreeProfiler GLOBAL_PROFILER = isGlobalEnabled()
     ? new CallTreeProfilerImpl(new AbstractConfiguration() {}) : DisabledCallTreeProfiler.getInstance();
@@ -73,12 +74,17 @@ public final class ProfilerFactory {
     }
 
     private static boolean isGlobalEnabled() {
-        final String enabledString = System.getProperty(PROP_GLOBAL_IS_ENABLED);
-        if (enabledString == null || enabledString.trim().length() == 0) {
-            return true;
+        final String envValue = System.getenv(ENV_GLOBAL_IS_ENABLED);
+        if (envValue != null && !envValue.trim().isEmpty()) {
+            return Boolean.valueOf(envValue);
         }
-        return Boolean.valueOf(enabledString);
+        final String enabledString = System.getProperty(PROP_GLOBAL_IS_ENABLED);
+        if (enabledString != null && !enabledString.trim().isEmpty()) {
+            return Boolean.valueOf(enabledString);
+        }
+        return true;
     }
+    
     /**
      * Create an enabled CallTreeProfiler.
      *
