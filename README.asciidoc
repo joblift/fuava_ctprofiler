@@ -347,8 +347,7 @@ mavenRepo=repository-url
 ```
 
 
-Then call:
+Then
 
-```
-gradle clean build publish
-```
+* increase version in build.gradle
+* call `gradle clean build publish`
