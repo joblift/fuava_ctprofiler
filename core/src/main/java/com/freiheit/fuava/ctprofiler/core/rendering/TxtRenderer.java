@@ -155,14 +155,16 @@ public class TxtRenderer extends Renderer {
     }
     @Override
     public boolean beginPath(final NestedTimerPath root, final TimerStatistics call) throws IOException {
-        sb.append(getPre());
+        
         if (call != null) {
             final boolean belowThreshold = call.getTotalNanos() < totalNanosThreshold;
             final boolean currentlySkippedLevelChanges = root.getLevel() != currentlySkippedLevel;
             if (isCurrentlySkipping() && (!belowThreshold || currentlySkippedLevelChanges)) {
                 if (numCurrentlySkipped == 1 && lastRoot != null) {
+                    sb.append(getPre());
                     renderCall(lastRoot, lastCall);
                 } else {
+                    sb.append(getPre());
                     renderCurrentlySkippedLine();
                 }
             }
@@ -183,6 +185,7 @@ public class TxtRenderer extends Renderer {
             }
 
         }
+        sb.append(getPre());
         renderCall(root, call);
         lastRoot = root;
         lastCall = call;
