@@ -10,7 +10,7 @@ subprojects {
   apply plugin: 'maven'
   apply plugin: 'maven-publish'
 
-  version = '1.0.6-jl'
+  version = '1.0.7-jl'
 
   repositories {
     mavenLocal()
